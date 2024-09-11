@@ -1,0 +1,44 @@
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    RestaurantID INT,
+    OrderDate DATE,
+    Amount DECIMAL(10, 2)
+);
+
+CREATE TABLE Restaurants (
+    RestaurantID INT PRIMARY KEY,
+    RestaurantName VARCHAR(255),
+    Location VARCHAR(255)
+);
+
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(255),
+    Location VARCHAR(255)
+);
+
+INSERT INTO Restaurants (RestaurantID, RestaurantName, Location) VALUES
+(1, 'Spicy Delight', 'Downtown'),
+(2, 'Green Veggies', 'Uptown'),
+(3, 'Burger Bonanza', 'Midtown');
+
+INSERT INTO Customers (CustomerID, CustomerName, Location) VALUES
+(1, 'John Doe', 'Downtown'),
+(2, 'Jane Smith', 'Midtown'),
+(3, 'Alice Green', 'Uptown');
+
+INSERT INTO Orders (OrderID, CustomerID, RestaurantID, OrderDate, Amount) VALUES
+(1, 1, 1, '2024-09-01', 25.50),
+(2, 2, 3, '2024-09-02', 15.00),
+(3, 1, 2, '2024-09-03', 12.75),
+(4, 3, 2, '2024-09-04', 22.00),
+(5, 1, 1, '2024-09-05', 30.00);
+
+
+
+create table report as (select b.RestaurantName ,count( a.orderid) as popularity, case when count( a.orderid) > 3 then 5 else 1 end as rating
+from orders a 
+join 
+Restaurants b on a.RestaurantID=b.RestaurantID
+group by b.RestaurantName)
