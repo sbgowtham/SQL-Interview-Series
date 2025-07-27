@@ -1,0 +1,72 @@
+
+CREATE TABLE orders_normal (
+    order_id INT PRIMARY KEY,
+    user_id INT,
+    amount DECIMAL(10,2),
+    created_at DATE
+);
+
+
+
+
+CREATE TABLE orders_partitioned (
+    order_id INT,
+    user_id INT,
+    amount DECIMAL(10,2),
+    created_at DATE,
+    PRIMARY KEY (order_id, created_at)  -- partition column must be in PK
+	
+)
+PARTITION BY RANGE (TO_DAYS(created_at)) (
+    PARTITION p2023_jan  VALUES LESS THAN (TO_DAYS('2023-02-01')),
+    PARTITION p2023_feb  VALUES LESS THAN (TO_DAYS('2023-03-01')),
+    PARTITION p2023_mar  VALUES LESS THAN (TO_DAYS('2023-04-01')),
+    PARTITION p2023_apr  VALUES LESS THAN (TO_DAYS('2023-05-01')),
+    PARTITION p2023_may  VALUES LESS THAN (TO_DAYS('2023-06-01')),
+    PARTITION p2023_jun  VALUES LESS THAN (TO_DAYS('2023-07-01')),
+    PARTITION p2023_jul  VALUES LESS THAN (TO_DAYS('2023-08-01')),
+    PARTITION pmax       VALUES LESS THAN (MAXVALUE)
+);
+
+
+INSERT INTO orders_partitioned SELECT * FROM orders_normal;
+
+
+EXPLAIN FORMAT=JSON 
+SELECT * FROM orders_partitioned 
+WHERE created_at = '2023-07-01';
+
+
+SET profiling = 1;
+
+SELECT COUNT(*) FROM orders_normal WHERE created_at = '2023-07-01';
+SELECT COUNT(*) FROM orders_partitioned WHERE created_at = '2023-07-01';
+
+
+SHOW PROFILES;
+
+
+OR 
+
+EXPLAIN ANALYZE SELECT COUNT(*) FROM orders_normal WHERE created_at = '2023-07-01';
+EXPLAIN ANALYZE SELECT COUNT(*) FROM orders_partitioned WHERE created_at = '2023-07-01';
+
+
+
+Alter Partition 
+
+ALTER TABLE orders_partitioned
+DROP PARTITION pmax;
+
+ALTER TABLE your_table
+ADD PARTITION (
+  PARTITION partition_name VALUES LESS THAN (TO_DAYS('YYYY-MM-DD'))
+);
+
+
+ALTER TABLE orders_partitioned
+DROP PARTITION pmax,
+ADD PARTITION (
+  PARTITION p2023_aug VALUES LESS THAN (TO_DAYS('2023-09-01')),
+  PARTITION pmax       VALUES LESS THAN (MAXVALUE)
+);
